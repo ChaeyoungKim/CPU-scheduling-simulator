@@ -148,9 +148,11 @@
   <ItemGroup>
     <ClCompile Include="1.c" />
     <ClCompile Include="create_process.c" />
+    <ClCompile Include="evaluation.c" />
     <ClCompile Include="FCFS.c" />
     <ClCompile Include="Priority_NP.c" />
     <ClCompile Include="Priority_P.c" />
+    <ClCompile Include="RR.c" />
     <ClCompile Include="SJF_NP.c" />
     <ClCompile Include="queue.c" />
     <ClCompile Include="SJF_P.c" />

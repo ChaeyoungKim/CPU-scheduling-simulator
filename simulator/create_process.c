@@ -15,10 +15,10 @@ Process* Create_Process(int n) { //n개의 프로세스를 생성하는 함수
 
 	for (i = 0; i < n; i++) { //각 프로세스의 arrival time, CPU burst time, priority에 랜덤 숫자 부여
 		process[i].process_id = i; //PID는 프로세스를 생성하는 순서대로 정수를 부여
-		process[i].arrival_time = rand() % 10;
-		process[i].cpu_burst_time = (rand() % 5) + 2; //CPU burst time은 2-6
-		process[i].io_start_time = (rand() % (process[i].cpu_burst_time-1)) + 1; //arrival_time + I/O start time이 I/O 실제로 시작되는 시각. CPU burst time을 초과하기 전에 I/O가 시작되어야 함. I/O burst가 0인 경우 이 값은 의미 없음.
-		process[i].io_burst_time = (rand() % 4); //I/O burst time은 0-4
+		process[i].arrival_time = rand() % 20;
+		process[i].cpu_burst_time = (rand() % 15) + 2; //CPU burst time은 2-16
+		process[i].io_start_time = (rand() % (process[i].cpu_burst_time-1)) + 1; //cpu burst가 일어난 지 I/O start time만에 I/O burst가 시작됨. CPU burst time을 초과하기 전에 I/O가 시작되어야 함. I/O burst가 0인 경우 이 값은 의미 없음.
+		process[i].io_burst_time = (rand() % 5); //I/O burst time은 0-4
 		process[i].priority = rand() % 7; //priority 숫자가 작을수록 우선순위가 높다.
 		process[i].waiting_time = 0;
 		process[i].termination_time = 0;

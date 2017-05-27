@@ -2,15 +2,17 @@
 #include <malloc.h>
 #include "simulator.h"
 
-void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n) {
+void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, double* WT1, double* TT1) {
 	int t = 0, i = 0, s = 0, once = 1;
 	double total = 0;
 	double avg_waiting_time = 0;
+	*WT1 = avg_waiting_time;
 	double avg_turnaround_time = 0;
+	*TT1 = avg_turnaround_time;
 	int final_termination = 0;
 	int m = n; // 마지막으로 종료되는 프로세스 추적
 	for(i=0;i<n;i++)
-		process[i].waiting_time = 0; //waiting time 초기화
+		process[i].waiting_time = 0; //프로세스마다 waiting time 초기화
 
 	printf("\n**************************************\n\tFCFS scheduling\n**************************************\n\n");
 
@@ -78,7 +80,7 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n) {
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
 				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--;
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) {
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) { //리눅스에서는 &&!isEmpty(waiting_queue)붙여줘야 함.
 				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst time이 0이 되면 프로세스가 waiting queue를 빠져나가 ready queue에 다시 줄을 선다.
 				dequeue(waiting_queue);
 			}
@@ -90,22 +92,21 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n) {
 
 	for (i = 0; i < n; i++) {
 		process[i].turnaround_time = process[i].termination_time - process[i].arrival_time;
-		printf("P%d termination time : %d\n", i, process[i].termination_time);
-		printf("P%d turnaround time : %d\n", i, process[i].turnaround_time);
-		printf("P%d waiting time : %d\n\n", i, process[i].waiting_time);
+		//printf("P%d termination time : %d\n", i, process[i].termination_time);
+		//printf("P%d turnaround time : %d\n", i, process[i].turnaround_time);
+		//printf("P%d waiting time : %d\n\n", i, process[i].waiting_time);
 		total += process[i].waiting_time;
 		if (final_termination < process[i].termination_time)
 			final_termination = process[i].termination_time;
 	}
-	avg_waiting_time = total / n;
-	printf("avg_waiting_time : %f\n", avg_waiting_time);
-
+	*WT1 = total / n;
+	printf("avg_waiting_time : %g\n", *WT1);
 	total = 0;
 
 	for (i = 0; i < n; i++) {
 		total += process[i].turnaround_time;
 	}
-	avg_turnaround_time = total / n;
-	printf("avg_turnaround_time : %f\n", avg_turnaround_time);
+	*TT1 = total / n;
+	printf("avg_turnaround_time : %g\n", *TT1);
 	//cpu utilization
 }

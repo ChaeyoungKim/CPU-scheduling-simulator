@@ -39,6 +39,12 @@
     <ClCompile Include="Priority_P.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="RR.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="evaluation.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="create_process.h">

@@ -1,7 +1,6 @@
 #pragma once
 #include "create_process.h"
 
-#define MAX 10 //ready queue 크기. 프로세스 개수가 0-10개이므로. 생성된 프로세스가 ready queue에 모두 들어갈 수 있다고 가정.
 typedef Process Element;
 typedef int bool;
 #define true 1

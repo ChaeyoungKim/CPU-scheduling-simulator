@@ -48,7 +48,7 @@ Element dequeue(Queue* q)
 	Process** b = &a; //구조체의 null 만들기
 	if (isEmpty(q)) {
 		printf("The queue is empty.\n");
-		return **b; //구조체의 null을 몰라서 null인 구조체 만듦.
+		return **b; //null 구조체 반환.
 	}
 	else {
 		item = q->array[q->out];

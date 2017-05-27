@@ -2,13 +2,13 @@
 #include <malloc.h>
 #include "simulator.h"
 
-//아직 오류 발견 x. 다시 읽어보기.
-
-void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int n) {
+void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, double* WT5, double* TT5) {
 	int t = 0, i = 0, s = 0, once = 1;
 	double total = 0;
 	double avg_waiting_time = 0;
+	*WT5 = avg_waiting_time;
 	double avg_turnaround_time = 0;
+	*TT5 = avg_turnaround_time;
 	int final_termination = 0;
 	int m = n; // 마지막으로 종료되는 프로세스 추적
 	for (i = 0; i<n; i++)
@@ -92,22 +92,22 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 
 	for (i = 0; i < n; i++) {
 		process[i].turnaround_time = process[i].termination_time - process[i].arrival_time;
-		printf("P%d termination time : %d\n", i, process[i].termination_time);
-		printf("P%d turnaround time : %d\n", i, process[i].turnaround_time);
-		printf("P%d waiting time : %d\n\n", i, process[i].waiting_time);
+		//printf("P%d termination time : %d\n", i, process[i].termination_time);
+		//printf("P%d turnaround time : %d\n", i, process[i].turnaround_time);
+		//printf("P%d waiting time : %d\n\n", i, process[i].waiting_time);
 		total += process[i].waiting_time;
 		if (final_termination < process[i].termination_time)
 			final_termination = process[i].termination_time;
 	}
-	avg_waiting_time = total / n;
-	printf("avg_waiting_time : %f\n", avg_waiting_time);
+	*WT5 = total / n;
+	printf("avg_waiting_time : %g\n", *WT5);
 
 	total = 0;
 
 	for (i = 0; i < n; i++) {
 		total += process[i].turnaround_time;
 	}
-	avg_turnaround_time = total / n;
-	printf("avg_turnaround_time : %f\n", avg_turnaround_time);
+	*TT5 = total / n;
+	printf("avg_turnaround_time : %g\n", *TT5);
 	//cpu utilization
 }
