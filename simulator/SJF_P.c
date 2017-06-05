@@ -81,7 +81,7 @@ void SJF_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, do
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
 				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //waiting queue에 있는 모든 프로세스의 I/O 작업이 실행되었을 것이다.
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) {
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
 				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst time이 0이 되면 프로세스가 waiting queue를 빠져나가 ready queue에 다시 줄을 선다. 여러 개 있을 수 있으니 while
 				dequeue(waiting_queue);
 			}

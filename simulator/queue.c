@@ -44,11 +44,11 @@ void enqueue(Queue* q, Element item)
 Element dequeue(Queue* q)
 {
 	Element item;
-	Process* a = (Process*)malloc(sizeof(Process)); //구조체의 null 만들기
-	Process** b = &a; //구조체의 null 만들기
+	Process* a = (Process*)malloc(sizeof(Process)); //null structure
+	Process** b = &a; //null structure
 	if (isEmpty(q)) {
 		printf("The queue is empty.\n");
-		return **b; //null 구조체 반환.
+		return **b; //null structure
 	}
 	else {
 		item = q->array[q->out];

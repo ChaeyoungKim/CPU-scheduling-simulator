@@ -10,16 +10,16 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 	double avg_turnaround_time = 0;
 	*TT5 = avg_turnaround_time;
 	int final_termination = 0;
-	int m = n; // 마지막으로 종료되는 프로세스 추적
+	int m = n; //keep track of the last process that terminates
 	for (i = 0; i<n; i++)
-		process[i].waiting_time = 0; //waiting time 초기화
+		process[i].waiting_time = 0; //waiting time initialization
 
 	printf("\n**************************************\n\tPreemptive Priority scheduling\n**************************************\n\n");
 
-	for (t = 0; t < 100; t++) { //arrival time 순서대로 ready queue에 process를 집어넣는다.
-		for (i = 0; i < n; i++) { //t초에서 도착한 프로세스가 있으면 ready_queue에 넣어준다.
+	for (t = 0; t < 100; t++) { //put the processes in the ready queue in the order of arrival time.
+		for (i = 0; i < n; i++) { //if there are processes that arrived at t, put them in the ready queue
 			if (process[i].arrival_time == t) {
-				if (process[i].io_burst_time == 0) { //I/O burst time이 0이면 I/O가 발생하지 않는 것으로 간주.
+				if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as no I/O burst needed
 					process[i].io_start_time = -1;
 				}
 				enqueue(ready_queue, process[i]);
@@ -28,21 +28,21 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 		}
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {
-				ready_queue->array[ready_queue->out].io_start_time--; //I/O 작업이 시작될 프로세스. I/O 작업은 한 번만 이루어지므로 다음에 위의 if문에 걸리지 않게 음수로.
-				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O 작업을 수행하러 가야 해서 ready queue를 빠져나왔고, I/O가 수행되는 동안 프로세스는 waiting queue에서 기다린다.
+				ready_queue->array[ready_queue->out].io_start_time--; //the process that will start I/O soon. Because I/O happens only once, set it as a negative value
+				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //it gets out of ready queue in order to do I/O and it waits at the waiting queue while I/O is done
 				dequeue(ready_queue);
 				//printf("\nwaiting queue : "); showQueue(waiting_queue);
 				//printf("\nready queue : "); showQueue(ready_queue);
 				if (!isEmpty(ready_queue)) {
-					sort_by_priority(ready_queue); //프로세스 도착하자마자 정렬하면 차례 밀려서 waiting queue로 못 갈 수도 있으므로 CPU 수행 직전 정렬.
+					sort_by_priority(ready_queue); //if sorted right after processes arrive, it could happen that process is moved back in line and can't go to waiting queue. So sorting needed right before CPU burst.
 					printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 					ready_queue->array[ready_queue->out].cpu_burst_time--;
 					ready_queue->array[ready_queue->out].io_start_time--;
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //프로세스의 종료 시각
+						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
 						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //CPU 작업한 프로세스 제외한 ready queue에 있던 모든 프로세스의 waiting time을 증가시킴. dequeue하기 전에.
+							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the processes in ready queue except the process that just did CPU burst. before dequeue.
 						dequeue(ready_queue);
 					}
 					else {
@@ -53,13 +53,13 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 				else
 					printf("Pidle(%d) ", t);
 			}
-			else { //ready queue의 첫 번째 프로세스가 CPU 작업을 할 차례인 경우 (당장 I/O 하지 않는 경우)
-				sort_by_priority(ready_queue); //미리 정렬하면 차례 밀려서 waiting queue로 못 가는 일이 생기므로, CPU 수행 직전 정렬.
+			else { //the first process of ready queue is about to do CPU (No I/O needed at the moment)
+				sort_by_priority(ready_queue); //if sorted in advance, it could be moved back in line and not go to waiting queue, so it's sorted right before CPU burst
 				printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				ready_queue->array[ready_queue->out].io_start_time--;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //프로세스의 종료 시각
+					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
 					for (i = 1; i<ready_queue->size; i++)
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
@@ -71,23 +71,23 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				}
 			}
-		} //ready queue에 작업이 남은 경우.
-		else { //ready queue에 작업이 없는 경우.
-			if (m != 0) // m은 아직 termination하지 못한 프로세스 개수.
+		} //some processes in ready queue
+		else { //no processes in ready queue
+			if (m != 0) //m is the number of processes that have not terminated yet
 				printf("Pidle(%d) ", t);
 		}
 		if (!isEmpty(waiting_queue)) {
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
-				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //waiting queue에 있는 모든 프로세스의 I/O 작업이 실행되었을 것이다.
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) {
-				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst time이 0이 되면 프로세스가 waiting queue를 빠져나가 ready queue에 다시 줄을 선다. 여러 개 있을 수 있으니 while
+				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //all the processes in waiting queue did I/O
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
+				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //when I/O burst time becomes 0, those processes get out of the waiting queue and line up in the ready queue. Repeat it in case there are many processes that have finished I/O
 				dequeue(waiting_queue);
 			}
 			//printf("\nupdated waiting queue : "); showQueue(waiting_queue);
 			//printf("\nupdated ready queue : "); showQueue(ready_queue);
-		} //waiting_queue에 작업이 남은 경우.
-	} //for문. time.
+		} //some processes in waiting_queue
+	} //for loop. time.
 	printf("\n\n");
 
 	for (i = 0; i < n; i++) {
@@ -109,5 +109,4 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 	}
 	*TT5 = total / n;
 	printf("avg_turnaround_time : %g\n", *TT5);
-	//cpu utilization
 }

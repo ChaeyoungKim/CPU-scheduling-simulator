@@ -5,34 +5,35 @@
 void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, double* WT6, double* TT6) {
 	int t = 0, i = 0, s = 0, once = 1, time_quantum = 0, cur_tq = 0;
 	Process temp_p;
-	temp_p.process_id = 100; //PID´Â ÇÁ·Î¼¼½º¸¦ »ı¼ºÇÏ´Â ¼ø¼­´ë·Î Á¤¼ö¸¦ ºÎ¿©
+	temp_p.process_id = 100; //PID that distinguishes from real processes
 	temp_p.arrival_time = 0;
-	temp_p.cpu_burst_time = 0; //CPU burst timeÀº 2-6
-	temp_p.io_start_time = 0; //arrival_time + I/O start timeÀÌ I/O ½ÇÁ¦·Î ½ÃÀÛµÇ´Â ½Ã°¢. CPU burst timeÀ» ÃÊ°úÇÏ±â Àü¿¡ I/O°¡ ½ÃÀÛµÇ¾î¾ß ÇÔ. I/O burst°¡ 0ÀÎ °æ¿ì ÀÌ °ªÀº ÀÇ¹Ì ¾øÀ½.
-	temp_p.io_burst_time = 0; //I/O burst timeÀº 0-4
-	temp_p.priority = 0; //priority ¼ıÀÚ°¡ ÀÛÀ»¼ö·Ï ¿ì¼±¼øÀ§°¡ ³ô´Ù.
+	temp_p.cpu_burst_time = 0;
+	temp_p.io_start_time = 0;
+	temp_p.io_burst_time = 0;
+	temp_p.priority = 0;
 	temp_p.waiting_time = 0;
 	temp_p.termination_time = 0;
 	temp_p.turnaround_time = 0;
+
 	double total = 0;
 	double avg_waiting_time = 0;
 	*WT6 = avg_waiting_time;
 	double avg_turnaround_time = 0;
 	*TT6 = avg_turnaround_time;
 	int final_termination = 0;
-	int m = n; // ¸¶Áö¸·À¸·Î Á¾·áµÇ´Â ÇÁ·Î¼¼½º ÃßÀû
-	int flag = 0; //ÇÁ·Î¼¼½º°¡ ºó ready queue¿¡ µé¾î¿À°Å³ª terminationÀÌ³ª I/O°¡ ¹ß»ıÇÑ ÈÄ »õ·Î¿î ÇÁ·Î¼¼½º°¡ À¯ÀÔµÇ¸é sortÇØ¾ß ÇÑ´Ù. À§ÀÇ °æ¿ì flag¸¦ 1·Î ¹Ù²Û´Ù.
+	int m = n; // keep track of the last process that terminates
+	int flag = 0; //sorting needed when processes come into the empty ready queue or new processes come into the ready queue after termination or I/O. In these cases, set flag as 1.
 	for (i = 0; i<n; i++)
-		process[i].waiting_time = 0; //waiting time ÃÊ±âÈ­
+		process[i].waiting_time = 0; //waiting time initialization­
 
 	printf("\n**************************************\n\tRR scheduling\n**************************************\n\n");
 
-	printf("Enter time_quantum : ");
-	scanf_s("%d", &time_quantum);
+	printf("Enter time quantum : ");
+	scanf("%d", &time_quantum);
 
 	for (i = 0; i < n; i++) {
 		if (process[i].arrival_time == 0) {
-			if (process[i].io_burst_time == 0) { //I/O burst timeÀÌ 0ÀÌ¸é I/O°¡ ¹ß»ıÇÏÁö ¾Ê´Â °ÍÀ¸·Î °£ÁÖ.
+			if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as no I/O needed
 				process[i].io_start_time = -1;
 			}
 			enqueue(ready_queue, process[i]);
@@ -40,12 +41,12 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 		}
 	}
 	cur_tq = time_quantum;
-	for (t = 0; t < 100; t++) { //arrival time ¼ø¼­´ë·Î ready queue¿¡ process¸¦ Áı¾î³Ö´Â´Ù.	
-		temp_p.process_id = 100; //temp_p ºñ¿ì±â
+	for (t = 0; t < 100; t++) { //put processes in the ready queue in the order of arrival time
+		temp_p.process_id = 100; //initialize temp_p
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {
-				ready_queue->array[ready_queue->out].io_start_time--; //I/O ÀÛ¾÷ÀÌ ½ÃÀÛµÉ ÇÁ·Î¼¼½º. I/O ÀÛ¾÷Àº ÇÑ ¹ø¸¸ ÀÌ·ç¾îÁö¹Ç·Î ´ÙÀ½¿¡ À§ÀÇ if¹®¿¡ °É¸®Áö ¾Ê°Ô À½¼ö·Î.
-				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O ÀÛ¾÷À» ¼öÇàÇÏ·¯ °¡¾ß ÇØ¼­ ready queue¸¦ ºüÁ®³ª¿Ô°í, I/O°¡ ¼öÇàµÇ´Â µ¿¾È ÇÁ·Î¼¼½º´Â waiting queue¿¡¼­ ±â´Ù¸°´Ù.
+				ready_queue->array[ready_queue->out].io_start_time--; //the process that will start I/O. Set I/O start time as a negative value because I/O happens only once
+				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //gets out of ready queue to do I/O. While I/O happens, processes wait in the waiting queue.
 				dequeue(ready_queue);
 				cur_tq = time_quantum;
 				//printf("\nwaiting queue : "); showQueue(waiting_queue);
@@ -56,10 +57,10 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 					cur_tq--;
 					ready_queue->array[ready_queue->out].io_start_time--;
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //ÇÁ·Î¼¼½ºÀÇ Á¾·á ½Ã°¢
+						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
 						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //CPU ÀÛ¾÷ÇÑ ÇÁ·Î¼¼½º Á¦¿ÜÇÑ ready queue¿¡ ÀÖ´ø ¸ğµç ÇÁ·Î¼¼½ºÀÇ waiting timeÀ» Áõ°¡½ÃÅ´. dequeueÇÏ±â Àü¿¡.
+							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the process in the ready queue except the process that just did CPU burst. before dequeue.
 						dequeue(ready_queue);
 						cur_tq = time_quantum;
 					}
@@ -70,8 +71,8 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 							cur_tq = time_quantum;
 							if (ready_queue->array[ready_queue->out].io_start_time == 0) {
 								ready_queue->array[ready_queue->out].io_start_time--;
-								ready_queue->array[ready_queue->out].io_burst_time++; //ÇÑ time¿¡ ÇÑ ÇÁ·Î¼¼½º°¡ cpu burst³ª I/O µÑ Áß ÇÏ³ª¸¸ ¼öÇàÇØ¾ß µÇ´Âµ¥ ¿©±â¼­ ³ª°¡¸é µÑ ´Ù ÇÏ°Ô µÇ¹Ç·Î 1À» ´õÇØÁÜ. (¾Æ·¡ WQ ´Ü°è¿¡¼­ 1 ºüÁü)
-								enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O ÀÛ¾÷À» ¼öÇàÇÏ·¯ °¡¾ß ÇØ¼­ ready queue¸¦ ºüÁ®³ª¿Ô°í, I/O°¡ ¼öÇàµÇ´Â µ¿¾È ÇÁ·Î¼¼½º´Â waiting queue¿¡¼­ ±â´Ù¸°´Ù.
+								ready_queue->array[ready_queue->out].io_burst_time++; //between t and t+1, one process can do either CPU burst or I/O. If it dequeues here, this process will do both. I/O burst times of all the processes in the waiting queue are decremented. So increment I/O burst time here so that even if it's sent to waiting queue now, I/O burst time remains the same.
+								enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //gets out of ready queue to go do I/O. Wihle I/O is being done, it waits in the waiting queue
 								dequeue(ready_queue);
 							}
 							else
@@ -83,13 +84,13 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 				else
 					printf("Pidle(%d) ", t);
 			}
-			else { //ready queueÀÇ Ã¹ ¹øÂ° ÇÁ·Î¼¼½º°¡ CPU ÀÛ¾÷À» ÇÒ Â÷·ÊÀÎ °æ¿ì (´çÀå I/O ÇÏÁö ¾Ê´Â °æ¿ì)
+			else { //the first process of the ready queue is about to do CPU burst (No I/O needed at the moment)
 				printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				cur_tq--;
 				ready_queue->array[ready_queue->out].io_start_time--;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //ÇÁ·Î¼¼½ºÀÇ Á¾·á ½Ã°¢
+					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
 					for (i = 1; i<ready_queue->size; i++)
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
@@ -104,8 +105,8 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 						cur_tq = time_quantum;
 						if (ready_queue->array[ready_queue->out].io_start_time == 0) {
 							ready_queue->array[ready_queue->out].io_start_time--;
-							ready_queue->array[ready_queue->out].io_burst_time++; //ÇÑ time¿¡ ÇÑ ÇÁ·Î¼¼½º°¡ cpu burst³ª I/O µÑ Áß ÇÏ³ª¸¸ ¼öÇàÇØ¾ß µÇ´Âµ¥ ¿©±â¼­ ³ª°¡¸é µÑ ´Ù ÇÏ°Ô µÇ¹Ç·Î 1À» ´õÇØÁÜ. (¾Æ·¡ WQ ´Ü°è¿¡¼­ 1 ºüÁü)
-							enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O ÀÛ¾÷À» ¼öÇàÇÏ·¯ °¡¾ß ÇØ¼­ ready queue¸¦ ºüÁ®³ª¿Ô°í, I/O°¡ ¼öÇàµÇ´Â µ¿¾È ÇÁ·Î¼¼½º´Â waiting queue¿¡¼­ ±â´Ù¸°´Ù.
+							ready_queue->array[ready_queue->out].io_burst_time++; //between t and t+1, one process can do either CPU burst or I/O. If it dequeues here, this process will do both. I/O burst times of all the processes in the waiting queue are decremented. So increment I/O burst time here so that even if it's sent to waiting queue now, I/O burst time remains the same.
+							enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //gets out of ready queue to go do I/O. Wihle I/O is being done, it waits in the waiting queue
 							dequeue(ready_queue);
 						}
 						else
@@ -113,41 +114,37 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 					}
 				}
 			}
-		} //ready queue¿¡ ÀÛ¾÷ÀÌ ³²Àº °æ¿ì.
-		else { //ready queue¿¡ ÀÛ¾÷ÀÌ ¾ø´Â °æ¿ì.
-			if (m != 0) { // mÀº ¾ÆÁ÷ terminationÇÏÁö ¸øÇÑ ÇÁ·Î¼¼½º °³¼ö.
+		} //some processes in ready queue
+		else { //no processes in ready queue
+			if (m != 0) { // m is the number of processes that have not terminated yet
 				printf("Pidle(%d) ", t);
-				//cur_tq = time_quantum;
 			}
 		}
 
 		if (!isEmpty(waiting_queue)) {
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
-				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //waiting queue¿¡ ÀÖ´Â ¸ğµç ÇÁ·Î¼¼½ºÀÇ I/O ÀÛ¾÷ÀÌ ½ÇÇàµÇ¾úÀ» °ÍÀÌ´Ù.
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) {
-				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst timeÀÌ 0ÀÌ µÇ¸é ÇÁ·Î¼¼½º°¡ waiting queue¸¦ ºüÁ®³ª°¡ ready queue¿¡ ´Ù½Ã ÁÙÀ» ¼±´Ù. ¿©·¯ °³ ÀÖÀ» ¼ö ÀÖÀ¸´Ï while
+				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //all the processes in the waiting queue did I/O
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
+				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //When I/O burst time becomes 0, the process gets out of waiting queue and then go line up in the ready queue. In case there are many processes that just have finished I/O, repeat it.
 				dequeue(waiting_queue);
 			}
 			//printf("\nupdated waiting queue : "); showQueue(waiting_queue);
 			//printf("\nupdated ready queue : "); showQueue(ready_queue);
-		} //waiting_queue¿¡ ÀÛ¾÷ÀÌ ³²Àº °æ¿ì.
+		} //there are processes in the waiting_queue
 
-		for (i = 0; i < n; i++) { //tÃÊ¿¡¼­ µµÂøÇÑ ÇÁ·Î¼¼½º°¡ ÀÖÀ¸¸é ready_queue¿¡ ³Ö¾îÁØ´Ù.
+		for (i = 0; i < n; i++) { //if any processes arrived at t, put them in the ready queue
 			if (process[i].arrival_time == t + 1) {
-				if (process[i].io_burst_time == 0) { //I/O burst timeÀÌ 0ÀÌ¸é I/O°¡ ¹ß»ıÇÏÁö ¾Ê´Â °ÍÀ¸·Î °£ÁÖ.
+				if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as I/O not needed.
 					process[i].io_start_time = -1;
 				}
 				enqueue(ready_queue, process[i]);
-				//printf("\n%dÃÊ¿¡¼­ ÇÁ·Î¼¼½º Ãß°¡ÇÑ ÈÄ ready queue : ",t+1); showQueue(ready_queue);
 			}
 		}
 		
 		if (m != 0 && temp_p.process_id != 100)
 			enqueue(ready_queue, temp_p);
-		//printf("\ntime quantum ³¡³­ ÇÁ·Î¼¼½º ´Ù½Ã Ãß°¡ÇÑ ÈÄ ready queue : "); showQueue(ready_queue);
-		//printf("m : %d\n", m);
-	} //for¹®. time.
+	} //for loop. time.
 	printf("\n\n");
 
 	for (i = 0; i < n; i++) {
@@ -169,5 +166,4 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 	}
 	*TT6 = total / n;
 	printf("avg_turnaround_time : %g\n", *TT6);
-	//cpu utilization
 }

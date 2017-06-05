@@ -10,7 +10,7 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 	double avg_turnaround_time = 0;
 	*TT2 = avg_turnaround_time;
 	int final_termination = 0;
-	int m = n; // 마지막으로 종료되는 프로세스 추적
+	int m = n; // keeps track of the last process that terminates
 	int flag = 0; //프로세스가 빈 ready queue에 들어오거나 termination이나 I/O가 발생한 후 새로운 프로세스가 유입되면 sort해야 한다. 위의 경우 flag를 1로 바꾼다.
 	for (i = 0; i<n; i++)
 		process[i].waiting_time = 0; //waiting time 초기화
@@ -89,7 +89,7 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
 				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //waiting queue에 있는 모든 프로세스의 I/O 작업이 실행되었을 것이다.
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) {
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
 				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst time이 0이 되면 프로세스가 waiting queue를 빠져나가 ready queue에 다시 줄을 선다. 여러 개 있을 수 있으니 while
 				dequeue(waiting_queue);
 			}
@@ -131,5 +131,4 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 	}
 	*TT2 = total / n;
 	printf("avg_turnaround_time : %g\n", *TT2);
-	//cpu utilization
 }

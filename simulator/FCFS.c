@@ -10,17 +10,17 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 	double avg_turnaround_time = 0;
 	*TT1 = avg_turnaround_time;
 	int final_termination = 0;
-	int m = n; // ¸¶Áö¸·À¸·Î Á¾·áµÇ´Â ÇÁ·Î¼¼½º ÃßÀû
+	int m = n; // keep track of the last process that terminates
 	for(i=0;i<n;i++)
-		process[i].waiting_time = 0; //ÇÁ·Î¼¼½º¸¶´Ù waiting time ÃÊ±âÈ­
+		process[i].waiting_time = 0; //initialize waiting times of all processes­
 
 	printf("\n**************************************\n\tFCFS scheduling\n**************************************\n\n");
 
-	for (t = 0; t < 100; t++) { //arrival time ¼ø¼­´ë·Î ready queue¿¡ process¸¦ Áý¾î³Ö´Â´Ù.
+	for (t = 0; t < 100; t++) { //put processes in ready queue by the order of arrival time
 		//printf("\ntime : %d\n", t);
-		for (i = 0; i < n; i++) { //tÃÊ¿¡¼­ µµÂøÇÑ ÇÁ·Î¼¼½º°¡ ÀÖÀ¸¸é ready_queue¿¡ ³Ö¾îÁØ´Ù.
+		for (i = 0; i < n; i++) { //if there is any process that arrived at t, put it in ready queue
 			if (process[i].arrival_time == t) {
-				if (process[i].io_burst_time == 0) { //I/O burst timeÀÌ 0ÀÌ¸é I/O°¡ ¹ß»ýÇÏÁö ¾Ê´Â °ÍÀ¸·Î °£ÁÖ.
+				if (process[i].io_burst_time == 0) { //if I/O burst time is 0, it is considered as no I/O burst needed
 					process[i].io_start_time = -1;
 				}
 				enqueue(ready_queue, process[i]);
@@ -29,8 +29,8 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 		}
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {
-				ready_queue->array[ready_queue->out].io_start_time--; //I/O ÀÛ¾÷ÀÌ ½ÃÀÛµÉ ÇÁ·Î¼¼½º. I/O ÀÛ¾÷Àº ÇÑ ¹ø¸¸ ÀÌ·ç¾îÁö¹Ç·Î ´ÙÀ½¿¡ À§ÀÇ if¹®¿¡ °É¸®Áö ¾Ê°Ô À½¼ö·Î.
-				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O ÀÛ¾÷À» ¼öÇàÇÏ·¯ °¡¾ß ÇØ¼­ ready queue¸¦ ºüÁ®³ª¿Ô°í, I/O°¡ ¼öÇàµÇ´Â µ¿¾È ÇÁ·Î¼¼½º´Â waiting queue¿¡¼­ ±â´Ù¸°´Ù.
+				ready_queue->array[ready_queue->out].io_start_time--; //the process that will start I/O burst soon. Because I/O burst happens only once, I/O start time is set as a negative value.
+				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //It went out of ready queue to go do I/O and while I/O happens I/O waits at the waiting queue
 				dequeue(ready_queue);
 				//printf("\nwaiting queue : "); showQueue(waiting_queue);
 				//printf("\nready queue : "); showQueue(ready_queue);
@@ -39,10 +39,10 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 					ready_queue->array[ready_queue->out].cpu_burst_time--;
 					ready_queue->array[ready_queue->out].io_start_time--;
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //ÇÁ·Î¼¼½ºÀÇ Á¾·á ½Ã°¢
+						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
 						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //CPU ÀÛ¾÷ÇÑ ÇÁ·Î¼¼½º Á¦¿ÜÇÑ ready queue¿¡ ÀÖ´ø ¸ðµç ÇÁ·Î¼¼½ºÀÇ waiting timeÀ» Áõ°¡½ÃÅ´
+							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting time of all the processes that were in ready queue except the process that just did CPU burst.
 						dequeue(ready_queue);
 					}
 					else {
@@ -54,12 +54,12 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 				else
 					printf("Pidle(%d) ", t);
 			}
-			else { //ready queueÀÇ Ã¹ ¹øÂ° ÇÁ·Î¼¼½º°¡ CPU ÀÛ¾÷À» ÇÒ Â÷·ÊÀÎ °æ¿ì (´çÀå I/O ÇÏÁö ¾Ê´Â °æ¿ì)
+			else { //when the first process of ready queue is about to do CPU burst. (No I/O needed at the moment)
 				printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				ready_queue->array[ready_queue->out].io_start_time--;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //ÇÁ·Î¼¼½ºÀÇ Á¾·á ½Ã°¢
+					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
 					for (i = 1; i<ready_queue->size; i++)
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
@@ -71,8 +71,8 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				}
 			}
-		} //ready queue¿¡ ÀÛ¾÷ÀÌ ³²Àº °æ¿ì.
-		else { //ready queue¿¡ ÀÛ¾÷ÀÌ ¾ø´Â °æ¿ì.
+		} //There are more than one process in ready queue
+		else { //no processes in ready queue
 			if(m!=0)
 				printf("Pidle(%d) ", t);
 		}
@@ -80,14 +80,14 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
 				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--;
-			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0) { //¸®´ª½º¿¡¼­´Â &&!isEmpty(waiting_queue)ºÙ¿©Áà¾ß ÇÔ.
-				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst timeÀÌ 0ÀÌ µÇ¸é ÇÁ·Î¼¼½º°¡ waiting queue¸¦ ºüÁ®³ª°¡ ready queue¿¡ ´Ù½Ã ÁÙÀ» ¼±´Ù.
+			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
+				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //when I/O burst time becomes 0, those processes go out of waiting queue and get in line of ready queue.
 				dequeue(waiting_queue);
 			}
 			//printf("\nupdated waiting queue : "); showQueue(waiting_queue);
 			//printf("\nupdated ready queue : "); showQueue(ready_queue);
-		} //waiting_queue¿¡ ÀÛ¾÷ÀÌ ³²Àº °æ¿ì.
-	} //for¹®. time.
+		} //one of more process in waiting_queue
+	} //for loop. time.
 	printf("\n\n");
 
 	for (i = 0; i < n; i++) {
@@ -108,5 +108,4 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 	}
 	*TT1 = total / n;
 	printf("avg_turnaround_time : %g\n", *TT1);
-	//cpu utilization
 }
