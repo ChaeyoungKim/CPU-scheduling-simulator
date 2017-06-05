@@ -41,7 +41,7 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 		}
 	}
 	cur_tq = time_quantum;
-	for (t = 0; t < 100; t++) { //put processes in the ready queue in the order of arrival time
+	for (t = 0; t < 500; t++) { //put processes in the ready queue in the order of arrival time
 		temp_p.process_id = 100; //initialize temp_p
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {

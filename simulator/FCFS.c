@@ -16,7 +16,7 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 
 	printf("\n**************************************\n\tFCFS scheduling\n**************************************\n\n");
 
-	for (t = 0; t < 100; t++) { //put processes in ready queue by the order of arrival time
+	for (t = 0; t < 500; t++) { //put processes in ready queue by the order of arrival time
 		//printf("\ntime : %d\n", t);
 		for (i = 0; i < n; i++) { //if there is any process that arrived at t, put it in ready queue
 			if (process[i].arrival_time == t) {

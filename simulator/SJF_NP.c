@@ -11,14 +11,14 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 	*TT2 = avg_turnaround_time;
 	int final_termination = 0;
 	int m = n; // keeps track of the last process that terminates
-	int flag = 0; //프로세스가 빈 ready queue에 들어오거나 termination이나 I/O가 발생한 후 새로운 프로세스가 유입되면 sort해야 한다. 위의 경우 flag를 1로 바꾼다.
+	int flag = 0; //sort needed only when processes come into an empty ready queue or a new process come into the ready queue after a process terminates or I/O happens. In these cases, set flag as 1. 
 	for (i = 0; i<n; i++)
-		process[i].waiting_time = 0; //waiting time 초기화
+		process[i].waiting_time = 0; //waiting time initialization
 
 	printf("\n**************************************\n\tNon-Preemptive SJF scheduling\n**************************************\n\n");
 	for (i = 0; i < n; i++) {
 		if (process[i].arrival_time == 0) {
-			if (process[i].io_burst_time == 0) { //I/O burst time이 0이면 I/O가 발생하지 않는 것으로 간주.
+			if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as if no I/O burst happens.
 				process[i].io_start_time = -1;
 			}
 			enqueue(ready_queue, process[i]);
@@ -26,12 +26,12 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 			//printf("\nready queue : "); showQueue(ready_queue);
 		}
 	}
-	for (t = 0; t < 100; t++) { //arrival time 순서대로 ready queue에 process를 집어넣는다.	
+	for (t = 0; t < 500; t++) { //put process in the ready queue in the order of arrival time
 		flag = 0;
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {
-				ready_queue->array[ready_queue->out].io_start_time--; //I/O 작업이 시작될 프로세스. I/O 작업은 한 번만 이루어지므로 다음에 위의 if문에 걸리지 않게 음수로.
-				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //I/O 작업을 수행하러 가야 해서 ready queue를 빠져나왔고, I/O가 수행되는 동안 프로세스는 waiting queue에서 기다린다.
+				ready_queue->array[ready_queue->out].io_start_time--; //process that will do I/O soon. I/O burst happens only once, so set it as a negative value so that it skips 'if' next time.
+				enqueue(waiting_queue, ready_queue->array[ready_queue->out]); //it gets out of the ready queue to do I/O and while I/O happens, the process waits in the waiting queue
 				dequeue(ready_queue);
 				sort_by_cpuburst(ready_queue);
 				//printf("\nwaiting queue : "); showQueue(waiting_queue);
@@ -41,10 +41,10 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 					ready_queue->array[ready_queue->out].cpu_burst_time--;
 					ready_queue->array[ready_queue->out].io_start_time--;
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //프로세스의 종료 시각
+						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
 						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //CPU 작업한 프로세스 제외한 ready queue에 있던 모든 프로세스의 waiting time을 증가시킴. dequeue하기 전에.
+							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the processes in ready queue except the process that just did CPU. Before dequeue.
 						dequeue(ready_queue);
 						flag = 1;
 						sort_by_cpuburst(ready_queue);
@@ -58,12 +58,12 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 				else
 					printf("Pidle(%d) ", t);
 			}
-			else { //ready queue의 첫 번째 프로세스가 CPU 작업을 할 차례인 경우 (당장 I/O 하지 않는 경우)
+			else { //the first process of ready queue is about to do CPU burst. (No I/O burst needed at the moment)
 				printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				ready_queue->array[ready_queue->out].io_start_time--;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
-					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //프로세스의 종료 시각
+					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
 					for (i = 1; i<ready_queue->size; i++)
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
@@ -77,30 +77,30 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				}
 			}
-		} //ready queue에 작업이 남은 경우.
-		else { //ready queue에 작업이 없는 경우.
-			if (m != 0) { // m은 아직 termination하지 못한 프로세스 개수.
+		} //one or more processes in ready queue
+		else { //no processes in ready queue
+			if (m != 0) { // m is the number of processes that did not terminate yet
 				printf("Pidle(%d) ", t);
-				flag = 1; //ready queue에 작업이 없다가 프로세스가 여러 개 들어오면 정렬을 해줘야 한다.
+				flag = 1; //if some processes come into the ready queue after a while it was empty, they need to be sorted.
 			}
 		}
 
 		if (!isEmpty(waiting_queue)) {
 			sort_by_ioburst(waiting_queue);
 			for (i = 0; i<waiting_queue->size; i++)
-				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //waiting queue에 있는 모든 프로세스의 I/O 작업이 실행되었을 것이다.
+				waiting_queue->array[(waiting_queue->out + i) % waiting_queue->capacity].io_burst_time--; //I/O of processes in waiting queue is in progress
 			while (waiting_queue->array[waiting_queue->out].io_burst_time == 0 && !isEmpty(waiting_queue)) {
-				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //I/O burst time이 0이 되면 프로세스가 waiting queue를 빠져나가 ready queue에 다시 줄을 선다. 여러 개 있을 수 있으니 while
+				enqueue(ready_queue, waiting_queue->array[waiting_queue->out]); //when I/O burst time becomes 0, processes goes out of waiting queue and line up in ready queue. In case there are many processes that have finished I/O, repeat it.
 				dequeue(waiting_queue);
 			}
 			if (flag == 1)
 				sort_by_cpuburst(ready_queue);
 			//printf("\nupdated waiting queue : "); showQueue(waiting_queue);
 			//printf("\nupdated ready queue : "); showQueue(ready_queue);
-		} //waiting_queue에 작업이 남은 경우.
-		for (i = 0; i < n; i++) { //t초에서 도착한 프로세스가 있으면 ready_queue에 넣어준다.
+		} //one or more processes in waiting queue
+		for (i = 0; i < n; i++) { //if there are processes that arrived at t, put them in ready queue
 			if (process[i].arrival_time == t+1) {
-				if (process[i].io_burst_time == 0) { //I/O burst time이 0이면 I/O가 발생하지 않는 것으로 간주.
+				if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as if I/O is not needed
 					process[i].io_start_time = -1;
 				}
 				enqueue(ready_queue, process[i]);
@@ -109,7 +109,7 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 				//printf("\nready queue : "); showQueue(ready_queue);
 			}
 		}
-	} //for문. time.
+	} //for loop. time.
 	printf("\n\n");
 
 	for (i = 0; i < n; i++) {

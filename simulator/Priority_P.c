@@ -16,7 +16,7 @@ void Priority_P(Process* process, Queue* ready_queue, Queue* waiting_queue, int 
 
 	printf("\n**************************************\n\tPreemptive Priority scheduling\n**************************************\n\n");
 
-	for (t = 0; t < 100; t++) { //put the processes in the ready queue in the order of arrival time.
+	for (t = 0; t < 500; t++) { //put the processes in the ready queue in the order of arrival time.
 		for (i = 0; i < n; i++) { //if there are processes that arrived at t, put them in the ready queue
 			if (process[i].arrival_time == t) {
 				if (process[i].io_burst_time == 0) { //if I/O burst time is 0, consider it as no I/O burst needed

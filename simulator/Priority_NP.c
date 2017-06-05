@@ -26,7 +26,7 @@ void Priority_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int
 			//printf("\nready queue : "); showQueue(ready_queue);
 		}
 	}
-	for (t = 0; t < 100; t++) { //put processes in the ready queue in the order of arrival time
+	for (t = 0; t < 500; t++) { //put processes in the ready queue in the order of arrival time
 		flag = 0;
 		if (!isEmpty(ready_queue)) {
 			if (ready_queue->array[ready_queue->out].io_start_time == 0) {
