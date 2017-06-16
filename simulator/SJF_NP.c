@@ -3,7 +3,7 @@
 #include "simulator.h"
 
 void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, double* WT2, double* TT2) {
-	int t = 0, i = 0, s = 0, once = 1;
+	int t = 0, i = 0, s = 0;
 	double total = 0;
 	double avg_waiting_time = 0;
 	*WT2 = avg_waiting_time;
@@ -40,20 +40,15 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 					printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 					ready_queue->array[ready_queue->out].cpu_burst_time--;
 					ready_queue->array[ready_queue->out].io_start_time--;
+					for (i = 1; i<ready_queue->size; i++)
+						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the processes in ready queue except the process that just did CPU. Before dequeue.
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
 						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
-						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the processes in ready queue except the process that just did CPU. Before dequeue.
 						dequeue(ready_queue);
 						flag = 1;
 						sort_by_cpuburst(ready_queue);
 					}
-					else {
-						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
-					}
-
 				}
 				else
 					printf("Pidle(%d) ", t);
@@ -62,19 +57,15 @@ void SJF_NP(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, d
 				printf("P%d(%d) ", ready_queue->array[ready_queue->out].process_id, t);
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				ready_queue->array[ready_queue->out].io_start_time--;
+				for (i = 1; i<ready_queue->size; i++)
+					process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
 					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
-					for (i = 1; i<ready_queue->size; i++)
-						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 					dequeue(ready_queue);
 					flag = 1;
 					sort_by_cpuburst(ready_queue);
 					//printf("\nready queue : "); showQueue(ready_queue);
-				}
-				else {
-					for (i = 1; i<ready_queue->size; i++)
-						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				}
 			}
 		} //one or more processes in ready queue

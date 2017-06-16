@@ -3,7 +3,7 @@
 #include "simulator.h"
 
 void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, double* WT6, double* TT6) {
-	int t = 0, i = 0, s = 0, once = 1, time_quantum = 0, cur_tq = 0;
+	int t = 0, i = 0, s = 0, time_quantum = 0, cur_tq = 0;
 	Process temp_p;
 	temp_p.process_id = 100; //PID that distinguishes from real processes
 	temp_p.arrival_time = 0;
@@ -22,7 +22,6 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 	*TT6 = avg_turnaround_time;
 	int final_termination = 0;
 	int m = n; // keep track of the last process that terminates
-	int flag = 0; //sorting needed when processes come into the empty ready queue or new processes come into the ready queue after termination or I/O. In these cases, set flag as 1.
 	for (i = 0; i<n; i++)
 		process[i].waiting_time = 0; //waiting time initialization­
 
@@ -56,17 +55,15 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 					ready_queue->array[ready_queue->out].cpu_burst_time--;
 					cur_tq--;
 					ready_queue->array[ready_queue->out].io_start_time--;
+					for (i = 1; i<ready_queue->size; i++)
+							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the process in the ready queue except the process that just did CPU burst. before dequeue.
 					if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
 						process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 						m--;
-						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++; //increment waiting times of all the process in the ready queue except the process that just did CPU burst. before dequeue.
 						dequeue(ready_queue);
 						cur_tq = time_quantum;
 					}
 					else {
-						for (i = 1; i<ready_queue->size; i++)
-							process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 						if (cur_tq == 0) {
 							cur_tq = time_quantum;
 							if (ready_queue->array[ready_queue->out].io_start_time == 0) {
@@ -89,18 +86,16 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 				ready_queue->array[ready_queue->out].cpu_burst_time--;
 				cur_tq--;
 				ready_queue->array[ready_queue->out].io_start_time--;
+				for (i = 1; i<ready_queue->size; i++)
+						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 				if (ready_queue->array[ready_queue->out].cpu_burst_time == 0) {
 					process[ready_queue->array[(ready_queue->out) % ready_queue->capacity].process_id].termination_time = t + 1; //process terminates
 					m--;
-					for (i = 1; i<ready_queue->size; i++)
-						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 					dequeue(ready_queue);
 					cur_tq = time_quantum;
 					//printf("\nready queue : "); showQueue(ready_queue);
 				}
 				else {
-					for (i = 1; i<ready_queue->size; i++)
-						process[ready_queue->array[(ready_queue->out + i) % ready_queue->capacity].process_id].waiting_time++;
 					if(cur_tq == 0) {
 						cur_tq = time_quantum;
 						if (ready_queue->array[ready_queue->out].io_start_time == 0) {
