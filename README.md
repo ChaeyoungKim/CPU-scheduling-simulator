@@ -1,7 +1,7 @@
 # CPU-scheduling-simulator
 ### 2017-1 Operating Systems term project  
 
-<Evaluation items>  
+Evaluation items  
 1. Method for Data Creation - PID, Arrival time, CPU (I/O) burst time, Priority etc.  
 2. Implementation of I/O operation  
 3. Algorithm - FCFS  
