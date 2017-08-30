@@ -12,7 +12,7 @@ void FCFS(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, dou
 	int final_termination = 0;
 	int m = n; // keep track of the last process that terminates
 	for(i=0;i<n;i++)
-		process[i].waiting_time = 0; //initialize waiting times of all processes­
+		process[i].waiting_time = 0; //initialize waiting times of all processes?
 
 	printf("\n**************************************\n\tFCFS scheduling\n**************************************\n\n");
 

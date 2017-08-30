@@ -16,8 +16,6 @@ bool isFull(Queue* q);
 bool isEmpty(Queue* q);
 void enqueue(Queue* q, Element item);
 Element dequeue(Queue* q);
-int front(Queue* q);
-int rear(Queue* q);
 void showQueue(Queue* q);
 void sort_by_cpuburst(Queue* q);
 void sort_by_priority(Queue* q);

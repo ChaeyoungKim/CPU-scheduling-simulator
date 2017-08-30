@@ -58,26 +58,6 @@ Element dequeue(Queue* q)
 	}
 }
 
-int front(Queue* q)
-{
-	if (isEmpty(q)) {
-		printf("The queue is empty.\n");
-		return -1;
-	}
-	else
-		return q->array[q->out].process_id;
-}
-
-int rear(Queue* q)
-{
-	if (isEmpty(q)) {
-		printf("The queue is empty.\n");
-		return -1;
-	}
-	else
-		return q->array[q->in - 1].process_id;
-}
-
 void showQueue(Queue* q)
 {
 	int i = q->out;

@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <malloc.h>
 #include "simulator.h"
@@ -23,7 +24,7 @@ void RR(Process* process, Queue* ready_queue, Queue* waiting_queue, int n, doubl
 	int final_termination = 0;
 	int m = n; // keep track of the last process that terminates
 	for (i = 0; i<n; i++)
-		process[i].waiting_time = 0; //waiting time initialization­
+		process[i].waiting_time = 0; //waiting time initialization
 
 	printf("\n**************************************\n\tRR scheduling\n**************************************\n\n");
 
